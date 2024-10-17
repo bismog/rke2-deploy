@@ -1,0 +1,6 @@
+- name: Deploy RKE2
+  hosts: all
+  become: yes
+  roles:
+    - role: rke2
+

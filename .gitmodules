@@ -1,0 +1,3 @@
+[submodule "rke2"]
+	path = roles/rke2
+	url = git@github.com:bismog/ansible-role-rke2.git

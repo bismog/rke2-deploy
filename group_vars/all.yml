@@ -1,0 +1,4 @@
+---
+rke2_install_bash_url: https://rancher-mirror.rancher.cn/rke2/install.sh
+rke2_mirror: "cn"
+rke2_default_registry: registry.cn-hangzhou.aliyuncs.com
