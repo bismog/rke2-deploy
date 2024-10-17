@@ -7,7 +7,7 @@ pip install ansible
 # Check /etc/resolv.conf, make sure right server configured
 
 # Establish ssh mutual trust from first server to other nodes
-for node in $(grep rke2_type hosts | awk '{print $1}');do
+for node in $(grep rke2_type hosts | awk -F'=' '{print $2}' | awk '{print $1}');do
     cat ~/.ssh/id_ed25519.pub | ssh $node "cat >> ~/.ssh/authorized_keys"
 done
 
