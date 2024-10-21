@@ -3,3 +3,57 @@ rke2_install_bash_url: https://rancher-mirror.rancher.cn/rke2/install.sh
 rke2_mirror: "cn"
 rke2_default_registry: registry.cn-hangzhou.aliyuncs.com
 rke2_server_hostname: rancher.astute.com
+enable_cert_manager: true
+enable_rancher: true
+enable_longhorn: true
+enable_harbor: true
+rke2_custom_registry_mirrors:
+  - name: "docker.io"
+    endpoint: 
+      - "https://dockerproxy.cn"
+      - "https://dockerpull.com"
+      - "https://docker.m.daocloud.io"
+    rewrite: '"(^.+$)": "$1"'
+  - name: "quay.io"
+    endpoint: 
+      - "https://quay.m.daocloud.io"
+    rewrite: '"(^.+$)": "$1"'
+  - name: "gcr.io"
+    endpoint: 
+      - "https://gcr.m.daocloud.io"
+    rewrite: '"(^.+$)": "$1"'
+  - name: "ghcr.io"
+    endpoint: 
+      - "https://ghcr.m.daocloud.io"
+    rewrite: '"(^.+$)": "$1"'
+  - name: "k8s.gcr.io"
+    endpoint: 
+      - "https://k8s.m.daocloud.io"
+    rewrite: '"(^.+$)": "$1"'
+  - name: "registry.k8s.io"
+    endpoint: 
+      - "https://k8s.m.daocloud.io"
+    rewrite: '"(^.+$)": "$1"'
+  - name: "nvcr.io"
+    endpoint: 
+      - "https://nvcr.m.daocloud.io"
+    rewrite: '"(^.+$)": "$1"'
+app_charts: 
+  - name: 'cert-manager'
+    namespace: 'cert-manager'
+    version: 'v1.16.1'
+    enable: "{{ enable_cert_manager }}"
+  - name: 'rancher'
+    namespace: 'cattle-system'
+    version: '2.9.2'
+    enable: "{{ enable_rancher }}"
+  - name: 'longhorn'
+    namespace: 'longhorn-system'
+    version: '1.7.2'
+    enable: "{{ enable_longhorn }}"
+  - name: 'harbor'
+    namespace: 'harbor-system'
+    version: '1.13.0'
+    enable: "{{ enable_harbor }}"
+    # set_values:
+    #   hostname: "{{ rke2_server_hostname }}"

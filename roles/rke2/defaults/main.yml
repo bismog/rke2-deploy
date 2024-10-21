@@ -323,18 +323,9 @@ rke2_server_hostname: example.com
 #   - name: harbor
 #     repo_url: https://helm.goharbor.io
 
-app_charts:
-  - name: 'cert-manager'
-    namespace: 'cert-manager'
-    version: 'v1.16.1'
-  - name: 'rancher'
-    namespace: 'cattle-system'
-    version: '2.9.2'
-  - name: 'longhorn'
-    namespace: 'longhorn-system'
-    version: '1.7.2'
-  - name: 'harbor'
-    namespace: 'harbor-system'
-    version: '1.15.1'
-    set_values:
-      hostname: "{{ rke2_server_hostname }}"
+app_charts: []
+
+enable_cert_manager: true
+enabel_rancher: true
+enable_longhorn: true
+enable_harbor: true

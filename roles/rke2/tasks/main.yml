@@ -93,6 +93,19 @@
 - name: Final steps
   ansible.builtin.include_tasks: summary.yml
 
+- block:
+    - name: Install iscsi utils
+      dnf:
+        name: "iscsi-initiator-utils"
+      become: true
+    
+    - name: Restart iscsid
+      systemd:
+        name: iscsid
+        state: started
+        enabled: true
+  when: enable_longhorn
+
 - name: Extra installation
   ansible.builtin.include_tasks: extra.yml
   when:
