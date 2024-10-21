@@ -1,0 +1,36 @@
+---
+- name: Install helm
+  copy:
+    # src: "{{ role_path }}/files/your_file"
+    src: helm
+    dest: /usr/bin/helm
+    mode: '0755'
+
+- name: Prepare cert-manager.crds.yaml
+  template:
+    src: cert-manager.crds.yaml
+    dest: /tmp/cert-manager.crds.yaml
+
+- name: Install cert manager CRD
+  kubernetes.core.k8s:
+    state: present
+    src: /tmp/cert-manager.crds.yaml
+
+- name: Copy charts
+  copy:
+    src: "{{ item.name }}-{{ item.version }}.tgz"
+    dest: "/tmp/{{ item.name }}-{{ item.version }}.tgz"
+  with_items: "{{ app_charts }}"
+
+- name: Install app charts
+  kubernetes.core.helm:
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    chart_ref: "/tmp/{{ item.name }}-{{ item.version }}.tgz"
+    set_values: 
+      - value: 'hostname=rancher.astute.com'
+        value_type: 'string'
+    #   - value: "{{ item.set_values | default(omit) }}"
+    #     value_type: 
+    create_namespace: 'yes'
+  with_items: "{{ app_charts }}"

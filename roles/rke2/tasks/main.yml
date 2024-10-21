@@ -92,3 +92,9 @@
 
 - name: Final steps
   ansible.builtin.include_tasks: summary.yml
+
+- name: Extra installation
+  ansible.builtin.include_tasks: extra.yml
+  when:
+    - inventory_hostname == groups[rke2_servers_group_name].0
+
