@@ -46,6 +46,7 @@ app_charts:
   - name: 'rancher'
     namespace: 'cattle-system'
     version: '2.9.2'
+    service_type: 'NodePort'
     enable: "{{ enable_rancher }}"
   - name: 'longhorn'
     namespace: 'longhorn-system'

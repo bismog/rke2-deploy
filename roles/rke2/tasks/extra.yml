@@ -30,6 +30,9 @@
     name: "{{ item.name }}"
     namespace: "{{ item.namespace }}"
     chart_ref: "/tmp/{{ item.name }}-{{ item.version }}.tgz"
+    set_values:
+      - service:
+          type: "{{ item.service_type | default(omit) }}"
     ## set_values: 
     ##   - value: 'hostname=rancher.astute.com'
     ##     value_type: 'string'
