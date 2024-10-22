@@ -325,7 +325,16 @@ rke2_server_hostname: example.com
 
 app_charts: []
 
-enable_cert_manager: true
-enabel_rancher: true
-enable_longhorn: true
-enable_harbor: true
+enable_cert_manager: false
+enable_rancher: false
+enable_longhorn: false
+enable_harbor: false
+
+rke2_rancker:
+  name: ''
+  version: ''
+  namespace: ''
+  hostname: ''
+  service_type: ''
+  enable: "{{ enable_rancher | bool }}"
+  

@@ -1,42 +1,67 @@
 ---
+- name: Make sure directory '~/.kube' exists
+  file:
+    path: ~/.kube
+    state: directory
+
+- name: Create symlink to rke2 config
+  file:
+    src: "/etc/rancher/rke2/rke2.yaml"
+    path: "~/.kube/config"
+    state: link
+
 - name: Install helm
   copy:
-    # src: "{{ role_path }}/files/your_file"
-    src: helm
-    dest: /usr/bin/helm
-    mode: '0755'
+    src: "helm"
+    dest: "/usr/bin/helm"
+    mode: "0755"
 
 - name: Prepare cert-manager.crds.yaml
   template:
-    src: cert-manager.crds.yaml
-    dest: /tmp/cert-manager.crds.yaml
+    src: "cert-manager.crds.yaml"
+    dest: "/tmp/cert-manager.crds.yaml"
   when: enable_cert_manager
+
+- name: Install kubernetes library
+  ansible.builtin.pip:
+    name: "kubernetes"
+    extra_args: "-i https://mirrors.aliyun.com/pypi/simple"
 
 - name: Install cert manager CRD
   kubernetes.core.k8s:
     state: present
-    src: /tmp/cert-manager.crds.yaml
+    src: "/tmp/cert-manager.crds.yaml"
   when: enable_cert_manager
 
 - name: Copy charts
   copy:
     src: "{{ item.name }}-{{ item.version }}.tgz"
     dest: "/tmp/{{ item.name }}-{{ item.version }}.tgz"
-  when: item.enable == 'yes'
+  when: item.enable
   with_items: "{{ app_charts }}"
 
+# https://luislogs.com/posts/re-engineering-the-homelab-with-iac-and-kubernetes-an-overview/
 - name: Install app charts
   kubernetes.core.helm:
     name: "{{ item.name }}"
     namespace: "{{ item.namespace }}"
-    chart_ref: "/tmp/{{ item.name }}-{{ item.version }}.tgz"
-    set_values:
-      - service:
-          type: "{{ item.service_type | default(omit) }}"
-    ## set_values: 
-    ##   - value: 'hostname=rancher.astute.com'
-    ##     value_type: 'string'
-    #   - value: "{{ item.set_values | default(omit) }}"
-    #     value_type: 
     create_namespace: 'yes'
+    chart_ref: "/tmp/{{ item.name }}-{{ item.version }}.tgz"
+    timeout: '10m'
+  when: 
+    - item.enable
+    - item.name != 'rancher'
   with_items: "{{ app_charts }}"
+
+- name: Install rancher
+  kubernetes.core.helm:
+    name: "{{ rke2_rancher.name }}"
+    namespace: "{{ rke2_rancher.namespace }}"
+    create_namespace: 'yes'
+    chart_ref: "/tmp/{{ rke2_rancher.name }}-{{ rke2_rancher.version }}.tgz"
+    timeout: '10m'
+    set_values:
+      - value: "service.type={{ rke2_rancher.service_type }}"
+      - value: "hostname={{ rke2_rancher.hostname }}"
+  when: 
+    - rke2_rancher.enable

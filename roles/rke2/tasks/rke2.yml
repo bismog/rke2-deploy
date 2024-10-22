@@ -137,6 +137,7 @@
     INSTALL_RKE2_CHANNEL: "{{ rke2_channel }}"
     INSTALL_RKE2_METHOD: "{{ rke2_method }}"
     INSTALL_RKE2_TYPE: "{{ rke2_type }}"
+    INSTALL_RKE2_MIRROR: "{{ rke2_mirror | default(omit) }}"
   changed_when: false
   when: not ansible_check_mode and rke2_version != installed_version and not rke2_airgap_mode
 

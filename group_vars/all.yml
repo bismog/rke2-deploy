@@ -3,10 +3,6 @@ rke2_install_bash_url: https://rancher-mirror.rancher.cn/rke2/install.sh
 rke2_mirror: "cn"
 rke2_default_registry: registry.cn-hangzhou.aliyuncs.com
 rke2_server_hostname: rancher.astute.com
-enable_cert_manager: true
-enable_rancher: true
-enable_longhorn: true
-enable_harbor: true
 rke2_custom_registry_mirrors:
   - name: "docker.io"
     endpoint: 
@@ -38,23 +34,32 @@ rke2_custom_registry_mirrors:
     endpoint: 
       - "https://nvcr.m.daocloud.io"
     rewrite: '"(^.+$)": "$1"'
+
+enable_cert_manager: 'yes'
+enable_rancher: 'yes'
+enable_longhorn: 'yes'
+enable_harbor: 'yes'
+
 app_charts: 
   - name: 'cert-manager'
     namespace: 'cert-manager'
     version: 'v1.16.1'
-    enable: "{{ enable_cert_manager }}"
-  - name: 'rancher'
-    namespace: 'cattle-system'
-    version: '2.9.2'
-    service_type: 'NodePort'
-    enable: "{{ enable_rancher }}"
+    enable: "{{ enable_cert_manager | bool }}"
   - name: 'longhorn'
     namespace: 'longhorn-system'
     version: '1.7.2'
-    enable: "{{ enable_longhorn }}"
+    enable: "{{ enable_longhorn | bool }}"
   - name: 'harbor'
     namespace: 'harbor-system'
     version: '1.13.0'
-    enable: "{{ enable_harbor }}"
+    enable: "{{ enable_harbor | bool }}"
     # set_values:
     #   hostname: "{{ rke2_server_hostname }}"
+
+rke2_rancher:
+  name: 'rancher'
+  version: '2.9.2'
+  namespace: 'cattle-system'
+  hostname: 'rancher.astute.com'
+  service_type: 'NodePort'
+  enable: "{{ enable_rancher | bool }}"

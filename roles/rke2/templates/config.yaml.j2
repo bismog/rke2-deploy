@@ -13,6 +13,9 @@ bind-address: {{ rke2_bind_address }}
 agent-token: {{ rke2_agent_token }}
 {% endif %}
 token: {{ rke2_token }}
+{% if rke2_default_registry is defined %}
+system-default-registry: {{ rke2_default_registry }}
+{% endif %}
 data-dir: {{ rke2_data_path }}
 {% if inventory_hostname in groups[rke2_servers_group_name] %}
 cni: {{ rke2_cni }}
