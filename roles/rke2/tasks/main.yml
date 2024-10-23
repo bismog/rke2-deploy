@@ -106,7 +106,7 @@
 #         enabled: true
 #   when: enable_longhorn
 
-- block: Install nerdctl
+- block:
     - name: Copy nerdctl tarball
       copy:
         src: "nerdctl-linux-amd64.tar.gz"

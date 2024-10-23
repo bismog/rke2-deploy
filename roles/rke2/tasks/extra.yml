@@ -53,15 +53,44 @@
     - item.name != 'rancher'
   with_items: "{{ app_charts }}"
 
+- name: Install harbor
+  kubernetes.core.helm:
+    name: "{{ harbor.name }}"
+    namespace: "{{ harbor.namespace }}"
+    create_namespace: 'yes'
+    chart_ref: "/tmp/{{ harbor.name }}-{{ harbor.version }}.tgz"
+    values:
+      expose:
+        type: "{{ harbor.service_type }}"
+        tls:
+          auto:
+            commonName: "{{ harbor.hostname }}"
+      persistence:
+        persistentVolumeClaim:
+          registry:
+            storageClass: "{{ harbor.storageclass }}"
+          jobservice:
+            jobLog:
+              storageClass: "{{ harbor.storageclass }}"
+          database:
+            storageClass: "{{ harbor.storageclass }}"
+          redis:
+            storageClass: "{{ harbor.storageclass }}"
+          trivy:
+            storageClass: "{{ harbor.storageclass }}"
+  when: 
+    - harbor.enable
+
 - name: Install rancher
   kubernetes.core.helm:
-    name: "{{ rke2_rancher.name }}"
-    namespace: "{{ rke2_rancher.namespace }}"
+    name: "{{ rancher.name }}"
+    namespace: "{{ rancher.namespace }}"
     create_namespace: 'yes'
-    chart_ref: "/tmp/{{ rke2_rancher.name }}-{{ rke2_rancher.version }}.tgz"
+    chart_ref: "/tmp/{{ rancher.name }}-{{ rancher.version }}.tgz"
     timeout: '10m'
-    set_values:
-      - value: "service.type={{ rke2_rancher.service_type }}"
-      - value: "hostname={{ rke2_rancher.hostname }}"
+    values:
+      service:
+        type: "{{ rancher.service_type }}"
+      hostname: "{{ rancher.hostname }}"
   when: 
-    - rke2_rancher.enable
+    - rancher.enable

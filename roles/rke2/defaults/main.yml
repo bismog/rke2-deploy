@@ -330,7 +330,15 @@ enable_rancher: false
 enable_longhorn: false
 enable_harbor: false
 
-rke2_rancker:
+harbor:
+  name: ''
+  version: ''
+  namespace: ''
+  hostname: ''
+  storageclass: ''
+  enable: "{{ enable_rancher | bool }}"
+
+rancher:
   name: ''
   version: ''
   namespace: ''

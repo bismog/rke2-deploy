@@ -49,14 +49,17 @@ app_charts:
     namespace: 'longhorn-system'
     version: '1.7.2'
     enable: "{{ enable_longhorn | bool }}"
-  - name: 'harbor'
-    namespace: 'harbor-system'
-    version: '1.13.0'
-    enable: "{{ enable_harbor | bool }}"
-    # set_values:
-    #   hostname: "{{ rke2_server_hostname }}"
 
-rke2_rancher:
+harbor:
+  name: 'harbor'
+  version: '1.13.0'
+  namespace: 'harbor-system'
+  hostname: 'harbor.astute.com'
+  storageclass: 'longhorn'
+  service_type: 'nodePort'
+  enable: "{{ enable_harbor | bool }}"
+
+rancher:
   name: 'rancher'
   version: '2.9.2'
   namespace: 'cattle-system'
