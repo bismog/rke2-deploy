@@ -23,8 +23,6 @@ ansible-playbook -i hosts site.yml
 # echo "export PATH=\$PATH:/var/lib/rancher/rke2/bin/" >> ~/.bashrc 
 if ! grep CRI_CONFIG_FILE ~/.bashrc;then
     tee >> ~/.bashrc <<EOF
-export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml
-alias nerdctl='nerctl -a /run/k3s/containerd/containerd.sock -n k8s.io'
 alias kubectl='/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml'
 alias k='kubectl'
 EOF

@@ -113,8 +113,20 @@
         dest: "/tmp/nerdctl-linux-amd64.tar.gz"
         mode: "0755"
     
-    - name: Extract nerdctl tarcall
-      command: "tar Cxzvvf /usr/local /tmp/nerdctl-linux-amd64.tar.gz"
+    - name: Extract nerdctl tarball
+      command: "tar Cxzvvf /usr/local/bin /tmp/nerdctl-linux-amd64.tar.gz"
+
+    - name: Ensure the alias is in .bashrc
+      lineinfile:
+        path: ~/.bashrc
+        line: "alias nerdctl='nerdctl -a /run/k3s/containerd/containerd.sock -n k8s.io'"
+        state: present
+
+    - name: Ensure export ENV
+      lineinfile:
+        path: ~/.bashrc
+        line: "export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml"
+        state: present
 
 - name: Extra installation
   ansible.builtin.include_tasks: extra.yml
