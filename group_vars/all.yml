@@ -39,6 +39,7 @@ enable_cert_manager: 'yes'
 enable_rancher: 'yes'
 enable_longhorn: 'yes'
 enable_harbor: 'yes'
+enable_gpu_operator: 'yes'
 
 app_charts: 
   - name: 'cert-manager'
@@ -49,6 +50,10 @@ app_charts:
     namespace: 'longhorn-system'
     version: '1.7.2'
     enable: "{{ enable_longhorn | bool }}"
+  - name: 'gpu-operator'
+    namespace: 'gpu-operator'
+    version: 'v24.6.2'
+    enable: "{{ enable_gpu_operator | bool }}"
 
 harbor:
   name: 'harbor'
