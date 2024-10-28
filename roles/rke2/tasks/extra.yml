@@ -16,22 +16,34 @@
     dest: "/usr/bin/helm"
     mode: "0755"
 
+- name: Install kubernetes library
+  ansible.builtin.pip:
+    name: "kubernetes"
+    extra_args: "-i https://mirrors.aliyun.com/pypi/simple"
+
 - name: Prepare cert-manager.crds.yaml
   template:
     src: "cert-manager.crds.yaml"
     dest: "/tmp/cert-manager.crds.yaml"
   when: enable_cert_manager
 
-- name: Install kubernetes library
-  ansible.builtin.pip:
-    name: "kubernetes"
-    extra_args: "-i https://mirrors.aliyun.com/pypi/simple"
-
 - name: Install cert manager CRD
   kubernetes.core.k8s:
     state: present
     src: "/tmp/cert-manager.crds.yaml"
   when: enable_cert_manager
+
+- name: Prepare helm-operator
+  template:
+    src: "helm-operator.yaml"
+    dest: "/tmp/helm-operator.yaml"
+  when: enable_helm_operator
+
+- name: Install helm-operator
+  kubernetes.core.k8s:
+    state: present
+    src: "/tmp/helm-operator.yaml"
+  when: enable_helm_operator
 
 - name: Copy charts
   copy:
