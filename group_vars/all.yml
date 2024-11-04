@@ -6,8 +6,11 @@ rke2_server_hostname: k8s.astute.com
 rke2_custom_registry_mirrors:
   - name: "docker.io"
     endpoint: 
-      - "https://dockerproxy.cn"
-      - "https://dockerpull.com"
+    # https://github.com/sky22333/Docker-Hub/tree/main
+      - "https://hub.rat.dev"
+      - "https://docker.1panel.live"
+      - "https://docker.rainbond.cc"
+      - "https://docker.1ms.run"
       - "https://docker.m.daocloud.io"
     rewrite: '"(^.+$)": "$1"'
   - name: "quay.io"
