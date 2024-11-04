@@ -7,6 +7,7 @@ rke2_custom_registry_mirrors:
   - name: "docker.io"
     endpoint: 
     # https://github.com/sky22333/Docker-Hub/tree/main
+      - "https://registry.dockermirror.com"
       - "https://hub.rat.dev"
       - "https://docker.1panel.live"
       - "https://docker.rainbond.cc"

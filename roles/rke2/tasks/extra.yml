@@ -65,44 +65,57 @@
     - item.name != 'rancher'
   with_items: "{{ app_charts }}"
 
-- name: Install harbor
-  kubernetes.core.helm:
-    name: "{{ harbor.name }}"
-    namespace: "{{ harbor.namespace }}"
-    create_namespace: 'yes'
-    chart_ref: "/tmp/{{ harbor.name }}-{{ harbor.version }}.tgz"
-    values:
-      # expose:
-      #   type: "{{ harbor.service_type }}"
-      #   tls:
-      #     auto:
-      #       commonName: "{{ harbor.hostname }}"
-      persistence:
-        persistentVolumeClaim:
-          registry:
-            storageClass: "{{ harbor.storageclass }}"
-          jobservice:
-            jobLog:
+
+- block:
+  - name: Copy harbor chart
+    copy:
+      src: "{{ harbor.name }}-{{ harbor.version }}.tgz"
+      dest: "/tmp/{{ harbor.name }}-{{ harbor.version }}.tgz"
+  
+  - name: Install harbor
+    kubernetes.core.helm:
+      name: "{{ harbor.name }}"
+      namespace: "{{ harbor.namespace }}"
+      create_namespace: 'yes'
+      chart_ref: "/tmp/{{ harbor.name }}-{{ harbor.version }}.tgz"
+      values:
+        # expose:
+        #   type: "{{ harbor.service_type }}"
+        #   tls:
+        #     auto:
+        #       commonName: "{{ harbor.hostname }}"
+        persistence:
+          persistentVolumeClaim:
+            registry:
               storageClass: "{{ harbor.storageclass }}"
-          database:
-            storageClass: "{{ harbor.storageclass }}"
-          redis:
-            storageClass: "{{ harbor.storageclass }}"
-          trivy:
-            storageClass: "{{ harbor.storageclass }}"
+            jobservice:
+              jobLog:
+                storageClass: "{{ harbor.storageclass }}"
+            database:
+              storageClass: "{{ harbor.storageclass }}"
+            redis:
+              storageClass: "{{ harbor.storageclass }}"
+            trivy:
+              storageClass: "{{ harbor.storageclass }}"
   when: 
     - harbor.enable
 
-- name: Install rancher
-  kubernetes.core.helm:
-    name: "{{ rancher.name }}"
-    namespace: "{{ rancher.namespace }}"
-    create_namespace: 'yes'
-    chart_ref: "/tmp/{{ rancher.name }}-{{ rancher.version }}.tgz"
-    timeout: '10m'
-    values:
-      service:
-        type: "{{ rancher.service_type }}"
-      hostname: "{{ rancher.hostname }}"
+- block:
+  - name: Copy harbor chart
+    copy:
+      src: "{{ rancher.name }}-{{ rancher.version }}.tgz"
+      dest: "/tmp/{{ rancher.name }}-{{ rancher.version }}.tgz"
+  
+  - name: Install rancher
+    kubernetes.core.helm:
+      name: "{{ rancher.name }}"
+      namespace: "{{ rancher.namespace }}"
+      create_namespace: 'yes'
+      chart_ref: "/tmp/{{ rancher.name }}-{{ rancher.version }}.tgz"
+      timeout: '10m'
+      values:
+        service:
+          type: "{{ rancher.service_type }}"
+        hostname: "{{ rancher.hostname }}"
   when: 
     - rancher.enable
