@@ -329,6 +329,7 @@ enable_cert_manager: false
 enable_rancher: false
 enable_longhorn: false
 enable_harbor: false
+enable_helm_operator: false
 enable_gpu_operator: false
 
 harbor:

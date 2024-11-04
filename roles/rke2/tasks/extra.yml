@@ -72,11 +72,11 @@
     create_namespace: 'yes'
     chart_ref: "/tmp/{{ harbor.name }}-{{ harbor.version }}.tgz"
     values:
-      expose:
-        type: "{{ harbor.service_type }}"
-        tls:
-          auto:
-            commonName: "{{ harbor.hostname }}"
+      # expose:
+      #   type: "{{ harbor.service_type }}"
+      #   tls:
+      #     auto:
+      #       commonName: "{{ harbor.hostname }}"
       persistence:
         persistentVolumeClaim:
           registry:

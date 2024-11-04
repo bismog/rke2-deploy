@@ -39,7 +39,8 @@ enable_cert_manager: 'yes'
 enable_rancher: 'yes'
 enable_longhorn: 'yes'
 enable_harbor: 'yes'
-enable_gpu_operator: 'yes'
+enable_helm_operator: 'yes'
+enable_gpu_operator: 'no'
 
 app_charts: 
   - name: 'cert-manager'
