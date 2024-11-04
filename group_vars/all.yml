@@ -5,8 +5,7 @@ rke2_default_registry: registry.cn-hangzhou.aliyuncs.com
 rke2_server_hostname: k8s.astute.com
 
 # HA
-rke2_ha_mode: 'yes'
-rke2_api_ip: "192.222.1.192"
+rke2_ha_mode: 'no'
 
 rke2_custom_registry_mirrors:
   - name: "docker.io"
@@ -48,7 +47,6 @@ enable_cert_manager: 'yes'
 enable_rancher: 'yes'
 enable_longhorn: 'yes'
 enable_harbor: 'yes'
-enable_helm_operator: 'yes'
 enable_gpu_operator: 'no'
 
 app_charts: 

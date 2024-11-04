@@ -323,13 +323,13 @@ rke2_server_hostname: example.com
 #   - name: harbor
 #     repo_url: https://helm.goharbor.io
 
+chart_repo_port: 8080
 app_charts: []
 
 enable_cert_manager: false
 enable_rancher: false
 enable_longhorn: false
 enable_harbor: false
-enable_helm_operator: false
 enable_gpu_operator: false
 
 harbor:

@@ -128,6 +128,39 @@
         line: "export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml"
         state: present
 
+- block:
+    - name: Set working directory
+      set_fact:
+        chart_dir: "{{ playbook_dir }}/roles/rke2/files"
+
+    - name: Create service file
+      copy:
+        dest: /etc/systemd/system/chart-server.service
+        content: |
+          [Unit]
+          Description=Simple HTTP Server for chart repo
+
+          [Service]
+          ExecStart=/usr/bin/python3 -m http.server {{ chart_repo_port }}
+          WorkingDirectory={{ chart_dir }}
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        name: systemd
+        daemon_reload: yes
+
+    - name: Enable and start chart-server service
+      ansible.builtin.systemd:
+        name: chart-server
+        enabled: yes
+        state: started
+  when:
+    - inventory_hostname == groups[rke2_servers_group_name].0
+
 - name: Extra installation
   ansible.builtin.include_tasks: extra.yml
   when:

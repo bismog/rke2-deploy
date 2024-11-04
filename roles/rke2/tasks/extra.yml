@@ -33,32 +33,13 @@
     src: "/tmp/cert-manager.crds.yaml"
   when: enable_cert_manager
 
-- name: Prepare helm-operator
-  template:
-    src: "helm-operator.yaml"
-    dest: "/tmp/helm-operator.yaml"
-  when: enable_helm_operator
-
-- name: Install helm-operator
-  kubernetes.core.k8s:
-    state: present
-    src: "/tmp/helm-operator.yaml"
-  when: enable_helm_operator
-
-- name: Copy charts
-  copy:
-    src: "{{ item.name }}-{{ item.version }}.tgz"
-    dest: "/tmp/{{ item.name }}-{{ item.version }}.tgz"
-  when: item.enable
-  with_items: "{{ app_charts }}"
-
 # https://luislogs.com/posts/re-engineering-the-homelab-with-iac-and-kubernetes-an-overview/
 - name: Install app charts
   kubernetes.core.helm:
     name: "{{ item.name }}"
     namespace: "{{ item.namespace }}"
     create_namespace: 'yes'
-    chart_ref: "/tmp/{{ item.name }}-{{ item.version }}.tgz"
+    chart_ref: "http://{{ rke2_api_ip }}:{{ chart_repo_port }}/{{ item.name }}-{{ item.version }}.tgz"
     timeout: '10m'
   when: 
     - item.enable
@@ -66,56 +47,44 @@
   with_items: "{{ app_charts }}"
 
 
-- block:
-  - name: Copy harbor chart
-    copy:
-      src: "{{ harbor.name }}-{{ harbor.version }}.tgz"
-      dest: "/tmp/{{ harbor.name }}-{{ harbor.version }}.tgz"
-  
-  - name: Install harbor
-    kubernetes.core.helm:
-      name: "{{ harbor.name }}"
-      namespace: "{{ harbor.namespace }}"
-      create_namespace: 'yes'
-      chart_ref: "/tmp/{{ harbor.name }}-{{ harbor.version }}.tgz"
-      values:
-        # expose:
-        #   type: "{{ harbor.service_type }}"
-        #   tls:
-        #     auto:
-        #       commonName: "{{ harbor.hostname }}"
-        persistence:
-          persistentVolumeClaim:
-            registry:
+- name: Install harbor
+  kubernetes.core.helm:
+    name: "{{ harbor.name }}"
+    namespace: "{{ harbor.namespace }}"
+    create_namespace: 'yes'
+    chart_ref: "http://{{ rke2_api_ip }}:{{ chart_repo_port }}/{{ harbor.name }}-{{ harbor.version }}.tgz"
+    values:
+      # expose:
+      #   type: "{{ harbor.service_type }}"
+      #   tls:
+      #     auto:
+      #       commonName: "{{ harbor.hostname }}"
+      persistence:
+        persistentVolumeClaim:
+          registry:
+            storageClass: "{{ harbor.storageclass }}"
+          jobservice:
+            jobLog:
               storageClass: "{{ harbor.storageclass }}"
-            jobservice:
-              jobLog:
-                storageClass: "{{ harbor.storageclass }}"
-            database:
-              storageClass: "{{ harbor.storageclass }}"
-            redis:
-              storageClass: "{{ harbor.storageclass }}"
-            trivy:
-              storageClass: "{{ harbor.storageclass }}"
+          database:
+            storageClass: "{{ harbor.storageclass }}"
+          redis:
+            storageClass: "{{ harbor.storageclass }}"
+          trivy:
+            storageClass: "{{ harbor.storageclass }}"
   when: 
     - harbor.enable
 
-- block:
-  - name: Copy harbor chart
-    copy:
-      src: "{{ rancher.name }}-{{ rancher.version }}.tgz"
-      dest: "/tmp/{{ rancher.name }}-{{ rancher.version }}.tgz"
-  
-  - name: Install rancher
-    kubernetes.core.helm:
-      name: "{{ rancher.name }}"
-      namespace: "{{ rancher.namespace }}"
-      create_namespace: 'yes'
-      chart_ref: "/tmp/{{ rancher.name }}-{{ rancher.version }}.tgz"
-      timeout: '10m'
-      values:
-        service:
-          type: "{{ rancher.service_type }}"
-        hostname: "{{ rancher.hostname }}"
+- name: Install rancher
+  kubernetes.core.helm:
+    name: "{{ rancher.name }}"
+    namespace: "{{ rancher.namespace }}"
+    create_namespace: 'yes'
+    chart_ref: "http://{{ rke2_api_ip }}:{{ chart_repo_port }}/{{ rancher.name }}-{{ rancher.version }}.tgz"
+    timeout: '10m'
+    values:
+      service:
+        type: "{{ rancher.service_type }}"
+      hostname: "{{ rancher.hostname }}"
   when: 
     - rancher.enable
