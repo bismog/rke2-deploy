@@ -3,6 +3,11 @@ rke2_install_bash_url: https://rancher-mirror.rancher.cn/rke2/install.sh
 rke2_mirror: "cn"
 rke2_default_registry: registry.cn-hangzhou.aliyuncs.com
 rke2_server_hostname: k8s.astute.com
+
+# HA
+rke2_ha_mode: 'yes'
+rke2_api_ip: "192.222.1.192"
+
 rke2_custom_registry_mirrors:
   - name: "docker.io"
     endpoint: 
@@ -65,8 +70,8 @@ harbor:
   version: '1.13.0'
   namespace: 'harbor-system'
   hostname: '{{ rke2_server_hostname }}'
+  service_type: '{{ "LoadBalancer" if rke2_ha_mode | bool else "NodePort" }}'
   storageclass: 'longhorn'
-  service_type: 'nodePort'
   enable: "{{ enable_harbor | bool }}"
 
 rancher:
@@ -74,5 +79,5 @@ rancher:
   version: '2.9.2'
   namespace: 'cattle-system'
   hostname: '{{ rke2_server_hostname }}'
-  service_type: 'NodePort'
+  service_type: '{{ "LoadBalancer" if rke2_ha_mode | bool else "NodePort" }}'
   enable: "{{ enable_rancher | bool }}"
