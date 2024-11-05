@@ -10,12 +10,6 @@
     path: "~/.kube/config"
     state: link
 
-- name: Install helm
-  copy:
-    src: "helm"
-    dest: "/usr/bin/helm"
-    mode: "0755"
-
 - name: Install kubernetes library
   ansible.builtin.pip:
     name: "kubernetes"

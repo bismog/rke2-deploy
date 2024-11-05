@@ -1,5 +1,7 @@
 [masters]
-master01 ansible_host=192.222.1.199 rke2_type=server
+master01 ansible_host=192.222.1.193 rke2_type=server
+master02 ansible_host=192.222.1.194 rke2_type=server
+master03 ansible_host=192.222.1.195 rke2_type=server
 
 [workers]
 

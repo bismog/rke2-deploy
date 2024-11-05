@@ -5,7 +5,9 @@ rke2_default_registry: registry.cn-hangzhou.aliyuncs.com
 rke2_server_hostname: k8s.astute.com
 
 # HA
-rke2_ha_mode: 'no'
+rke2_ha_mode: 'yes'
+rke2_api_ip: "192.222.1.192"
+rke2_ntp_server: "192.222.1.6"
 
 rke2_custom_registry_mirrors:
   - name: "docker.io"

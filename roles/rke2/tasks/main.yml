@@ -1,4 +1,15 @@
 ---
+- block:
+    - name: Configure chronyd
+      template:
+        src: chrony.conf.j2
+        dest: "/etc/chrony.conf"
+        mode: '0644' 
+
+    - name: Restart chronyd service 
+      ansible.builtin.systemd: 
+        name: chronyd 
+        state: restarted
 
 - name: Install Keepalived when HA mode is enabled
   ansible.builtin.include_tasks: keepalived.yml
@@ -93,18 +104,23 @@
 - name: Final steps
   ansible.builtin.include_tasks: summary.yml
 
-- block:
-    - name: Install iscsi utils
-      dnf:
-        name: "iscsi-initiator-utils"
-      become: true
-    
-    - name: Restart iscsid
-      systemd:
-        name: iscsid
-        state: started
-        enabled: true
-  when: enable_longhorn
+- name: Ensure alias 'kubectl' is present in ~/.bashrc
+  lineinfile:
+    path: ~/.bashrc
+    regexp: '^alias kubectl='
+    line: "alias kubectl='/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml'"
+    state: present
+  when: 
+    - rke2_type == 'server'
+
+- name: Ensure alias 'k' is present in ~/.bashrc
+  lineinfile:
+    path: ~/.bashrc
+    regexp: '^alias k='
+    line: "alias k='kubectl'"
+    state: present
+  when: 
+    - rke2_type == 'server'
 
 - block:
     - name: Copy nerdctl tarball
@@ -114,7 +130,7 @@
         mode: "0755"
     
     - name: Extract nerdctl tarball
-      command: "tar Cxzvvf /usr/local/bin /tmp/nerdctl-linux-amd64.tar.gz"
+      command: "tar Cxzvvf /usr/bin /tmp/nerdctl-linux-amd64.tar.gz"
 
     - name: Ensure the alias is in .bashrc
       lineinfile:
@@ -127,6 +143,18 @@
         path: ~/.bashrc
         line: "export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml"
         state: present
+
+- block:
+    - name: Copy helm tarball
+      copy:
+        src: "helm-v3.16.2-linux-amd64.tar.gz"
+        dest: "/tmp/helm-v3.16.2-linux-amd64.tar.gz"
+        mode: "0755"
+    
+    - name: Extract helm tarball
+      command: "tar xzf /tmp/helm-v3.16.2-linux-amd64.tar.gz -C /usr/bin linux-amd64/helm --strip-components=1"
+  when: 
+    - rke2_type == 'server'
 
 - block:
     - name: Set working directory
@@ -160,6 +188,19 @@
         state: started
   when:
     - inventory_hostname == groups[rke2_servers_group_name].0
+
+- block:
+    - name: Install iscsi utils
+      dnf:
+        name: "iscsi-initiator-utils"
+      become: true
+    
+    - name: Restart iscsid
+      systemd:
+        name: iscsid
+        state: started
+        enabled: true
+  when: enable_longhorn
 
 - name: Extra installation
   ansible.builtin.include_tasks: extra.yml

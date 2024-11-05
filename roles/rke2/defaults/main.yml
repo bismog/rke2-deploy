@@ -89,7 +89,8 @@ rke2_agent_node_taints: []
 rke2_token: defaultSecret12345
 
 # RKE2 version
-rke2_version: v1.25.3+rke2r1
+# rke2_version: v1.25.3+rke2r1
+rke2_version: v1.30.6+rke2r1
 
 # URL to RKE2 repository
 rke2_channel_url: https://update.rke2.io/v1-release/channels
@@ -310,6 +311,8 @@ rke2_selinux: false
 rke2_helm_version: v3.9.2
 
 rke2_server_hostname: example.com
+
+rke2_ntp_server: "{{ rke2_api_ip }}"
 
 # chart repo
 # chart_repos:
