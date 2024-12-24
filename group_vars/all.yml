@@ -3,6 +3,7 @@ rke2_install_bash_url: https://rancher-mirror.rancher.cn/rke2/install.sh
 rke2_mirror: "cn"
 rke2_default_registry: registry.cn-hangzhou.aliyuncs.com
 rke2_server_hostname: k8s.astute.com
+rke2_cni: 'multus,canal'
 
 # HA
 rke2_ha_mode: 'yes'
