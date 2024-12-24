@@ -82,3 +82,19 @@
       hostname: "{{ rancher.hostname }}"
   when: 
     - rancher.enable
+
+- name: Install nfs provisioner
+  kubernetes.core.helm:
+    name: "{{ nfs_provisioner.name }}"
+    namespace: "{{ nfs_provisioner.namespace }}"
+    create_namespace: 'yes'
+    chart_ref: "http://{{ rke2_api_ip }}:{{ chart_repo_port }}/{{ nfs_provisioner.name }}-{{ nfs_provisioner.version }}.tgz"
+    timeout: '10m'
+    values:
+      service:
+        type: "{{ nfs_provisioner.service_type }}"
+      nfs:
+        server: "{{ nfs_provisioner.server }}"
+        path: "{{ nfs_provisioner.path }}"
+  when: 
+    - nfs_provisioner.enable

@@ -122,6 +122,15 @@
   when: 
     - rke2_type == 'server'
 
+- name: Set domain name
+  lineinfile:
+    path: /etc/hosts
+    regexp: "^{{ rke2_api_ip }}\\s+{{ rke2_server_hostname }}"
+    line: "{{ rke2_api_ip }} {{ rke2_server_hostname }}"
+    state: present
+  when: 
+    - rke2_type == 'server'
+
 - block:
     - name: Copy nerdctl tarball
       copy:
@@ -201,6 +210,12 @@
         state: started
         enabled: true
   when: enable_longhorn
+
+- name: Install nfs utils
+  dnf:
+    name: "nfs-utils"
+  become: true
+  when: enable_nfs_provisioner
 
 - name: Extra installation
   ansible.builtin.include_tasks: extra.yml
