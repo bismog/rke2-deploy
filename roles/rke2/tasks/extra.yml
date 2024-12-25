@@ -15,16 +15,28 @@
     name: "kubernetes"
     extra_args: "-i https://mirrors.aliyun.com/pypi/simple"
 
-- name: Prepare cert-manager.crds.yaml
-  template:
-    src: "cert-manager.crds.yaml"
-    dest: "/tmp/cert-manager.crds.yaml"
-  when: enable_cert_manager
+- block:
+  - name: Prepare nad.yaml
+    template:
+      src: "nad.yaml.j2"
+      dest: "/tmp/nad.yaml"
 
-- name: Install cert manager CRD
-  kubernetes.core.k8s:
-    state: present
-    src: "/tmp/cert-manager.crds.yaml"
+  - name: Install NetworkAttachmentDefinition 
+    kubernetes.core.k8s:
+      state: present
+      src: "/tmp/nad.yaml"
+  when: enable_multiple_networks
+
+- block:
+  - name: Prepare cert-manager.crds.yaml
+    template:
+      src: "cert-manager.crds.yaml"
+      dest: "/tmp/cert-manager.crds.yaml"
+
+  - name: Install cert manager CRD
+    kubernetes.core.k8s:
+      state: present
+      src: "/tmp/cert-manager.crds.yaml"
   when: enable_cert_manager
 
 # https://luislogs.com/posts/re-engineering-the-homelab-with-iac-and-kubernetes-an-overview/

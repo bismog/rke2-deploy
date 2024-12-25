@@ -5,15 +5,53 @@ rke2_default_registry: registry.cn-hangzhou.aliyuncs.com
 rke2_server_hostname: k8s.astute.com
 rke2_cni: 'multus,canal'
 
+enable_ha_mode: 'yes'
+enable_cert_manager: 'yes'
+enable_rancher: 'yes'
+enable_longhorn: 'yes'
+enable_harbor: 'yes'
+enable_gpu_operator: 'no'
+enable_nfs_provisioner: 'yes'
+enable_multiple_networks: 'yes'
+
 # HA
-rke2_ha_mode: 'yes'
+rke2_ha_mode: "{{ enable_ha_mode }}"
 rke2_api_ip: "192.222.1.192"
 rke2_ntp_server: "192.222.1.6"
 
-# nfs
+# NFS
 nfs_server_ip: '192.222.15.223'
 nfs_server_path: '/nfsdata'
 
+# Multiple networks
+data_iface: 'ens19'
+data_network_name: 'data-network'
+
+# NAD(Network Attachment Definition)
+# Available type: macvlan/ipvlan/bridge/host-device/sr-iov
+# Available mode for each type:
+# macvlan: bridge/vepa/private/passthru
+# ipvlan:  l2/l3/l3s
+# Available ipam type: host-local/static/dhcp
+# Once the NAD is configured, create a pod as this on it:
+# ---
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: test-pod
+#   annotations:
+#     k8s.v1.cni.cncf.io/networks: "{{ nad.name }}"
+# spec:
+# ...
+nad:
+  name: "{{ data_network_name }}"
+  type: 'macvlan'
+  mode: 'bridge'
+  iface: "{{ data_iface }}"
+  ipam:
+    type: 'host-local'
+
+# Registry
 rke2_custom_registry_mirrors:
   - name: "docker.io"
     endpoint: 
@@ -21,6 +59,7 @@ rke2_custom_registry_mirrors:
       - "https://registry.dockermirror.com"
       - "https://hub.rat.dev"
       - "https://docker.1panel.live"
+      - "https://proxy.1panel.live"
       - "https://docker.rainbond.cc"
       - "https://docker.1ms.run"
       - "https://docker.m.daocloud.io"
@@ -49,13 +88,6 @@ rke2_custom_registry_mirrors:
     endpoint: 
       - "https://nvcr.m.daocloud.io"
     rewrite: '"(^.+$)": "$1"'
-
-enable_cert_manager: 'yes'
-enable_rancher: 'yes'
-enable_longhorn: 'yes'
-enable_harbor: 'yes'
-enable_gpu_operator: 'no'
-enable_nfs_provisioner: 'yes'
 
 app_charts: 
   - name: 'cert-manager'

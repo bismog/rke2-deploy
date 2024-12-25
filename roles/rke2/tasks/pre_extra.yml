@@ -1,0 +1,113 @@
+---
+- name: Ensure alias 'kubectl' is present in ~/.bashrc
+  lineinfile:
+    path: ~/.bashrc
+    regexp: '^alias kubectl='
+    line: "alias kubectl='/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml'"
+    state: present
+  when: 
+    - rke2_type == 'server'
+
+- name: Ensure alias 'k' is present in ~/.bashrc
+  lineinfile:
+    path: ~/.bashrc
+    regexp: '^alias k='
+    line: "alias k='kubectl'"
+    state: present
+  when: 
+    - rke2_type == 'server'
+
+- name: Set domain name
+  lineinfile:
+    path: /etc/hosts
+    regexp: "^{{ rke2_api_ip }}\\s+{{ rke2_server_hostname }}"
+    line: "{{ rke2_api_ip }} {{ rke2_server_hostname }}"
+    state: present
+  when: 
+    - rke2_type == 'server'
+
+- block:
+    - name: Copy nerdctl tarball
+      copy:
+        src: "nerdctl-linux-amd64.tar.gz"
+        dest: "/tmp/nerdctl-linux-amd64.tar.gz"
+        mode: "0755"
+    
+    - name: Extract nerdctl tarball
+      command: "tar Cxzvvf /usr/bin /tmp/nerdctl-linux-amd64.tar.gz"
+
+    - name: Ensure the alias is in .bashrc
+      lineinfile:
+        path: ~/.bashrc
+        line: "alias nerdctl='nerdctl -a /run/k3s/containerd/containerd.sock -n k8s.io'"
+        state: present
+
+    - name: Ensure export ENV
+      lineinfile:
+        path: ~/.bashrc
+        line: "export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml"
+        state: present
+
+- block:
+    - name: Copy helm tarball
+      copy:
+        src: "helm-v3.16.2-linux-amd64.tar.gz"
+        dest: "/tmp/helm-v3.16.2-linux-amd64.tar.gz"
+        mode: "0755"
+    
+    - name: Extract helm tarball
+      command: "tar xzf /tmp/helm-v3.16.2-linux-amd64.tar.gz -C /usr/bin linux-amd64/helm --strip-components=1"
+  when: 
+    - rke2_type == 'server'
+
+- block:
+    - name: Set working directory
+      set_fact:
+        chart_dir: "{{ playbook_dir }}/roles/rke2/files"
+
+    - name: Create service file
+      copy:
+        dest: /etc/systemd/system/chart-server.service
+        content: |
+          [Unit]
+          Description=Simple HTTP Server for chart repo
+
+          [Service]
+          ExecStart=/usr/bin/python3 -m http.server {{ chart_repo_port }}
+          WorkingDirectory={{ chart_dir }}
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        name: systemd
+        daemon_reload: yes
+
+    - name: Enable and start chart-server service
+      ansible.builtin.systemd:
+        name: chart-server
+        enabled: yes
+        state: started
+  when:
+    - inventory_hostname == groups[rke2_servers_group_name].0
+
+- block:
+    - name: Install iscsi utils
+      dnf:
+        name: "iscsi-initiator-utils"
+      become: true
+    
+    - name: Restart iscsid
+      systemd:
+        name: iscsid
+        state: started
+        enabled: true
+  when: enable_longhorn
+
+- name: Install nfs utils
+  dnf:
+    name: "nfs-utils"
+  become: true
+  when: enable_nfs_provisioner
