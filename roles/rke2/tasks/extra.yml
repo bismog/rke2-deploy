@@ -60,11 +60,11 @@
     create_namespace: 'yes'
     chart_ref: "http://{{ rke2_api_ip }}:{{ chart_repo_port }}/{{ harbor.name }}-{{ harbor.version }}.tgz"
     values:
-      # expose:
-      #   type: "{{ harbor.service_type }}"
-      #   tls:
-      #     auto:
-      #       commonName: "{{ harbor.hostname }}"
+      expose:
+        ingress:
+          hosts:
+            core: "{{ harbor.hostname }}"
+      externalURL: "https://{{ harbor.hostname }}"
       persistence:
         persistentVolumeClaim:
           registry:

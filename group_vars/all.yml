@@ -2,8 +2,9 @@
 rke2_install_bash_url: https://rancher-mirror.rancher.cn/rke2/install.sh
 rke2_mirror: "cn"
 rke2_default_registry: registry.cn-hangzhou.aliyuncs.com
-rke2_server_hostname: k8s.astute.com
 rke2_cni: 'multus,canal'
+rke2_server_hostname: k8s.astute.com
+harbor_domain_name: harbor.astute.com
 
 enable_ha_mode: 'yes'
 enable_cert_manager: 'yes'
@@ -107,7 +108,7 @@ harbor:
   name: 'harbor'
   version: '1.13.0'
   namespace: 'harbor-system'
-  hostname: '{{ rke2_server_hostname }}'
+  hostname: '{{ harbor_domain_name }}'
   service_type: '{{ "LoadBalancer" if rke2_ha_mode | bool else "NodePort" }}'
   storageclass: 'longhorn'
   enable: "{{ enable_harbor | bool }}"
