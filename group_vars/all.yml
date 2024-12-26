@@ -7,13 +7,13 @@ rke2_server_hostname: k8s.astute.com
 harbor_domain_name: harbor.astute.com
 
 enable_ha_mode: 'yes'
-enable_cert_manager: 'yes'
 enable_rancher: 'yes'
 enable_longhorn: 'yes'
 enable_harbor: 'yes'
 enable_gpu_operator: 'no'
 enable_nfs_provisioner: 'yes'
 enable_multiple_networks: 'yes'
+enable_cert_manager: "{{ enable_rancher }}"
 
 # HA
 rke2_ha_mode: "{{ enable_ha_mode }}"

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K8S算力平台部署</title>
+    <style>
+        .hidden {
+            display: none;
+        }
+        .section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .sub-section {
+            margin-left: 20px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>K8S算力平台部署</h1>
+    <form id="deployForm">
+        <div class="section">
+            <div>
+                <label>
+                    <input type="checkbox" id="enable_ha_mode" name="enable_ha_mode" value="yes"> 启用高可用
+                </label>
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" id="enable_rancher" name="enable_rancher" value="yes" onchange="toggleRancher()"> 安装rancher控制台
+                </label>
+            </div>
+            <div id="rancherConfig" class="hidden sub-section">
+                <div>
+                    <label for="rke2_server_hostname">K8S平台访问域名:</label>
+                    <input type="text" id="rke2_server_hostname" name="rke2_server_hostname">
+                </div>
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" id="enable_longhorn" name="enable_longhorn" value="yes"> 安装longhorn存储
+                </label>
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" id="enable_harbor" name="enable_harbor" value="yes" onchange="toggleHarbor()"> 安装harbor仓库
+                </label>
+            </div>
+            <div id="harborConfig" class="hidden sub-section">
+                <div>
+                    <label for="harbor_domain_name">仓库访问域名:</label>
+                    <input type="text" id="harbor_domain_name" name="harbor_domain_name">
+                </div>
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" id="enable_gpu_operator" name="enable_gpu_operator" value="yes"> 安装GPU插件
+                </label>
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" id="enable_nfs_provisioner" name="enable_nfs_provisioner" value="yes"> 安装NFS插件
+                </label>
+            </div>
+            <div id="nfsConfig" class="hidden sub-section">
+                <div>
+                    <label for="nfs_server_ip">NFS server(如IP地址):</label>
+                    <input type="text" id="nfs_server_ip" name="nfs_server_ip">
+                </div>
+                <div>
+                    <label for="nfs_server_path">NFS共享路径:</label>
+                    <input type="text" id="nfs_server_path" name="nfs_server_path">
+                </div>
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" id="enable_multiple_networks" name="enable_multiple_networks" value="yes" onchange="toggleMultipleNetworks()"> 多网络平面
+                </label>
+            </div>
+            <div id="multipleNetworksConfig" class="hidden sub-section">
+                <div>
+                    <label for="data_iface">第二个网卡名(如eth2):</label>
+                    <input type="text" id="data_iface" name="data_iface">
+                </div>
+                <div>
+                    <label for="data_network_name">第二个网络名称(如data-network):</label>
+                    <input type="text" id="data_network_name" name="data_network_name">
+                </div>
+            </div>
+        </div>
+        <button type="submit">开始部署</button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+
+                document.getElementById('enable_ha_mode').checked = config.enable_ha_mode === 'yes';
+                document.getElementById('enable_rancher').checked = config.enable_rancher === 'yes';
+                if (config.enable_rancher === 'yes') {
+                    document.getElementById('rancherConfig').classList.remove('hidden');
+                    document.getElementById('rke2_server_hostname').value = config.rke2_server_hostname || '';
+                }
+                document.getElementById('enable_longhorn').checked = config.enable_longhorn === 'yes';
+                document.getElementById('enable_harbor').checked = config.enable_harbor === 'yes';
+                if (config.enable_harbor === 'yes') {
+                    document.getElementById('harborConfig').classList.remove('hidden');
+                    document.getElementById('harbor_domain_name').value = config.harbor_domain_name || '';
+                }
+                document.getElementById('enable_gpu_operator').checked = config.enable_gpu_operator === 'yes';
+                document.getElementById('enable_nfs_provisioner').checked = config.enable_nfs_provisioner === 'yes';
+                if (config.enable_nfs_provisioner === 'yes') {
+                    document.getElementById('nfsConfig').classList.remove('hidden');
+                    document.getElementById('nfs_server_ip').value = config.nfs_server_ip || '';
+                    document.getElementById('nfs_server_path').value = config.nfs_server_path || '';
+                }
+                document.getElementById('enable_multiple_networks').checked = config.enable_multiple_networks === 'yes';
+                if (config.enable_multiple_networks === 'yes') {
+                    document.getElementById('multipleNetworksConfig').classList.remove('hidden');
+                    document.getElementById('data_iface').value = config.data_iface || '';
+                    document.getElementById('data_network_name').value = config.data_network_name || '';
+                }
+            } catch (error) {
+                console.error('Failed to load configuration:', error);
+            }
+        });
+
+        function toggleRancher() {
+            const enableRancher = document.getElementById('enable_rancher').checked;
+            const rancherConfig = document.getElementById('rancherConfig');
+            if (enableRancher) {
+                rancherConfig.classList.remove('hidden');
+            } else {
+                rancherConfig.classList.add('hidden');
+            }
+        }
+
+        function toggleHarbor() {
+            const enableHarbor = document.getElementById('enable_harbor').checked;
+            const harborConfig = document.getElementById('harborConfig');
+            if (enableHarbor) {
+                harborConfig.classList.remove('hidden');
+            } else {
+                harborConfig.classList.add('hidden');
+            }
+        }
+
+        function toggleNFS() {
+            const enable_nfs_provisioner = document.getElementById('enable_nfs_provisioner').checked;
+            const nfsConfig = document.getElementById('nfsConfig');
+            if (enable_nfs_provisioner) {
+                nfsConfig.classList.remove('hidden');
+            } else {
+                nfsConfig.classList.add('hidden');
+            }
+        }
+
+        function toggleMultipleNetworks() {
+            const enableMultipleNetworks = document.getElementById('enable_multiple_networks').checked;
+            const multipleNetworksConfig = document.getElementById('multipleNetworksConfig');
+            if (enableMultipleNetworks) {
+                multipleNetworksConfig.classList.remove('hidden');
+            } else {
+                multipleNetworksConfig.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('deployForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const config = {
+                enable_ha_mode: document.getElementById('enable_ha_mode').checked ? 'yes' : 'no',
+                enable_rancher: document.getElementById('enable_rancher').checked ? 'yes' : 'no',
+                rke2_server_hostname: document.getElementById('enable_rancher').checked ? document.getElementById('rke2_server_hostname').value : '',
+                enable_longhorn: document.getElementById('enable_longhorn').checked ? 'yes' : 'no',
+                enable_harbor: document.getElementById('enable_harbor').checked ? 'yes' : 'no',
+                harbor_domain_name: document.getElementById('enable_harbor').checked ? document.getElementById('harbor_domain_name').value : '',
+                enable_gpu_operator: document.getElementById('enable_gpu_operator').checked ? 'yes' : 'no',
+                enable_nfs_provisioner: document.getElementById('enable_nfs_provisioner').checked ? 'yes' : 'no',
+                nfs_server_ip: document.getElementById('enable_nfs_provisioner').checked ? document.getElementById('nfs_server_ip').value : '',
+                nfs_server_path: document.getElementById('enable_nfs_provisioner').checked ? document.getElementById('nfs_server_path').value : '',
+                enable_multiple_networks: document.getElementById('enable_multiple_networks').checked ? 'yes' : 'no',
+                data_iface: document.getElementById('enable_multiple_networks').checked ? document.getElementById('data_iface').value : '',
+                data_network_name: document.getElementById('enable_multiple_networks').checked ? document.getElementById('data_network_name').value : ''
+            };
+
+            try {
+                const response = await fetch('/api/deploy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(config),
+                });
+
+                if (response.ok) {
+                    alert('部署开始');
+                } else {
+                    alert('部署失败，请查看日志文件：/var/log/ansible.log');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('部署失败，请查看日志文件：/var/log/ansible.log');
+            }
+        });
+    </script>
+</body>
+</html>
