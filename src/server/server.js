@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
@@ -40,7 +40,9 @@ const parseHostsFile = (content) => {
 
 // 读取hosts文件
 app.get('/api/hosts', (req, res) => {
-  const hostsPath = path.join(__dirname, '../hosts');
+  const globalHostsPath = '/etc/ansible/hosts';
+  const localHostsPath = path.join(__dirname, '../hosts.sample');
+  const hostsPath = fs.existsSync(globalHostsPath) ? globalHostsPath : localHostsPath;
   // console.log('Hosts path:', hostsPath);
 
   try {
@@ -59,7 +61,8 @@ function updateHosts(hosts) {
   const masters = hosts.filter(node => node.type === 'server');
   const workers = hosts.filter(node => node.type === 'agent');
 
-  const hostsPath = path.join(__dirname, '../hosts');
+  // const hostsPath = path.join(__dirname, '../hosts');
+  const hostsPath = '/etc/ansible/hosts';
   // console.log('Hosts path:', hostsPath);
 
   let hostsContent = '[masters]\n';
@@ -86,7 +89,9 @@ function updateHosts(hosts) {
 
 // 读取group_vars/all.yml文件
 app.get('/api/config', (req, res) => {
-  const configPath = path.join(__dirname, '../group_vars/all.yml');
+  const globalConfigPath = '/etc/ansible/all.yml';
+  const localConfigPath = path.join(__dirname, '../group_vars/all.yml.sample');
+  const configPath = fs.existsSync(globalConfigPath) ? globalConfigPath : localConfigPath;
   // console.log('Config path:', configPath);
 
   try {
@@ -102,7 +107,8 @@ app.get('/api/config', (req, res) => {
 
   // 更新group_vars/all.yml文件
 function updateConfig(config) {
-  const configPath = path.join(__dirname, '../group_vars/all.yml');  // 请根据实际路径修改
+  const configPath = '/etc/ansible/all.yml';
+  // const configPath = path.join(__dirname, '../group_vars/all.yml');
 
   try {
     const fileContents = fs.readFileSync(configPath, 'utf8');
@@ -188,16 +194,24 @@ app.post('/api/deploy', (req, res) => {
   }
 
   // 执行install.sh脚本
-  exec(path.join(__dirname, '../install.sh'), (error, stdout, stderr) => { 
-    if (error) {
-      console.error(`exec error: ${error}`);
-      return res.status(500).json({ error: '安装脚本执行失败' });
-    }
-    console.log('开始部署...');
-    // console.log(`stdout: ${stdout}`);
-    // console.error(`stderr: ${stderr}`);
-    res.status(200).json({ message: '部署开始' });
+  const scriptPath = path.join(__dirname, '../install.sh');
+  fs.chmodSync(scriptPath, '755');
+  const installProcess = spawn('sh', [scriptPath], {
+    detached: true,
+    stdio: ['ignore', 'ignore', 'ignore'] // 忽略所有stdio
   });
+  installProcess.on('error', (err) => {
+    console.error('Failed to start subprocess:', err);
+  });
+  installProcess.unref();
+  // exec(path.join(__dirname, '../install.sh'), (error, stdout, stderr) => { 
+  //   if (error) {
+  //     console.error(`exec error: ${error}`);
+  //     return res.status(500).json({ error: '执行install.sh失败' });
+  //   }
+  // });
+  console.log('开始部署...');
+  res.status(200).json({ message: '开始部署...' });
 });
 
 app.listen(PORT, '0.0.0.0', () => {

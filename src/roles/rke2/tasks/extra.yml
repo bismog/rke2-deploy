@@ -25,7 +25,7 @@
     kubernetes.core.k8s:
       state: present
       src: "/tmp/nad.yaml"
-  when: enable_multiple_networks
+  when: enable_multiple_networks | bool
 
 - block:
   - name: Prepare cert-manager.crds.yaml
@@ -37,7 +37,7 @@
     kubernetes.core.k8s:
       state: present
       src: "/tmp/cert-manager.crds.yaml"
-  when: enable_cert_manager
+  when: enable_cert_manager | bool
 
 # https://luislogs.com/posts/re-engineering-the-homelab-with-iac-and-kubernetes-an-overview/
 - name: Install app charts
@@ -48,7 +48,7 @@
     chart_ref: "http://{{ rke2_api_ip }}:{{ chart_repo_port }}/{{ item.name }}-{{ item.version }}.tgz"
     timeout: '10m'
   when: 
-    - item.enable
+    - item.enable | bool
     - item.name != 'rancher'
   with_items: "{{ app_charts }}"
 
@@ -79,7 +79,7 @@
           trivy:
             storageClass: "{{ harbor.storageclass }}"
   when: 
-    - harbor.enable
+    - harbor.enable | bool
 
 - name: Install rancher
   kubernetes.core.helm:
@@ -93,7 +93,7 @@
         type: "{{ rancher.service_type }}"
       hostname: "{{ rancher.hostname }}"
   when: 
-    - rancher.enable
+    - rancher.enable | bool
 
 - name: Install nfs provisioner
   kubernetes.core.helm:
@@ -107,4 +107,4 @@
         server: "{{ nfs_provisioner.server }}"
         path: "{{ nfs_provisioner.path }}"
   when: 
-    - nfs_provisioner.enable
+    - nfs_provisioner.enable | bool

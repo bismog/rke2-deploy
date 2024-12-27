@@ -104,10 +104,10 @@
         name: iscsid
         state: started
         enabled: true
-  when: enable_longhorn
+  when: enable_longhorn | bool
 
 - name: Install nfs utils
   dnf:
     name: "nfs-utils"
   become: true
-  when: enable_nfs_provisioner
+  when: enable_nfs_provisioner | bool

@@ -299,13 +299,13 @@
                 });
 
                 if (response.ok) {
-                    alert('部署开始');
+                    alert('部署开始，请查看日志文件：/var/log/install.log');
                 } else {
-                    alert('部署失败，请查看日志文件：/var/log/ansible.log');
+                    alert('部署失败，请查看日志文件：/var/log/install.log');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('部署失败，请查看日志文件：/var/log/ansible.log');
+                alert('部署请求失败');
             }
         });
     </script>

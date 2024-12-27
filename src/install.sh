@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# workdir=$(cd $(dirname $0);pwd)
+workdir=$(cd $(dirname $0);pwd)
 function install() {
     # Establish ssh mutual trust from first server to other nodes
-    for node in $(grep rke2_type hosts | awk -F'=' '{print $2}' | awk '{print $1}');do
+    for node in $(grep rke2_type /etc/ansible/hosts | awk -F'=' '{print $2}' | awk '{print $1}');do
         cat ~/.ssh/id_ed25519.pub | ssh $node "cat >> ~/.ssh/authorized_keys"
         ssh $node "nmcli con mod bond-mgtbond ipv4.dns 1.1.1.1;nmcli con up bond-mgtbond"
         # check: nmcli -g ipv4.dns connection show bond-mgtbond
@@ -12,8 +12,7 @@ function install() {
 
     # This base on rocky linux 9.2
     if ! rpm -q python3-pip;then
-        # dnf install -y python3-pip
-        dnf install -y git python3-pip
+        dnf install -y python3-pip
     fi
 
     if [[ ! -e ~/.pip/pip.conf ]];then
@@ -46,8 +45,12 @@ EOF
     # fi
 
     # Run deployment
-    echo "Begine installation..."
-    ansible-playbook -i hosts site.yml
+    echo "Begin installation..."
+    ansible-playbook -i /etc/ansible/hosts -e @/etc/ansible/all.yml $workdir/site.yml
 }
 
-# install | tee /var/log/install.log
+# while :;do
+#     echo "hello rke2 ..." | tee -a /var/log/install.log
+#     sleep 10
+# done
+install 2>&1 | tee /var/log/install.log
