@@ -50,4 +50,4 @@ EOF
     ansible-playbook -i hosts site.yml
 }
 
-install | tee /var/log/install.log
+# install | tee /var/log/install.log

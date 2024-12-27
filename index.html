@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>K8S算力平台部署</title>
+    <!-- 引入Bootstrap CSS -->
+    <link href="resources/bootstrap.min.css" rel="stylesheet">
     <style>
         .hidden {
             display: none;
@@ -16,93 +18,104 @@
         .sub-section {
             margin-left: 20px;
         }
-        button {
-            font-size: 18px;
-            padding: 10px 20px;
-        }
     </style>
 </head>
 <body>
-    <h1>K8S算力平台部署</h1>
-    <form id="deployForm">
-        <div class="section">
-            <div>
-                <label>
-                    <input type="checkbox" id="enable_ha_mode" name="enable_ha_mode" value="yes"> 启用高可用
-                </label>
+    <div class="container mt-5">
+        <h1 class="mb-4">K8S算力平台部署</h1>
+        <form id="deployForm">
+            <div class="section">
+                <h2>节点</h2>
+                <div id="nodes" class="mb-3">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="addNode()">添加节点</button>
             </div>
-            <div>
-                <label>
-                    <input type="checkbox" id="enable_rancher" name="enable_rancher" value="yes" onchange="toggleRancher()"> 安装rancher控制台
-                </label>
-            </div>
-            <div id="rancherConfig" class="hidden sub-section">
-                <div>
-                    <label for="rke2_server_hostname">K8S平台访问域名:</label>
-                    <input type="text" id="rke2_server_hostname" name="rke2_server_hostname">
+            <div class="section">
+                <h2>配置项</h2>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="enable_ha_mode" name="enable_ha_mode" value="yes">
+                    <label class="form-check-label" for="enable_ha_mode">启用高可用</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="enable_rancher" name="enable_rancher" value="yes" onchange="toggleRancher()">
+                    <label class="form-check-label" for="enable_rancher">安装rancher控制台</label>
+                </div>
+                <div id="rancherConfig" class="hidden sub-section">
+                    <div class="form-group">
+                        <label for="rke2_server_hostname">K8S平台访问域名:</label>
+                        <input type="text" class="form-control" id="rke2_server_hostname" name="rke2_server_hostname">
+                    </div>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="enable_longhorn" name="enable_longhorn" value="yes">
+                    <label class="form-check-label" for="enable_longhorn">安装longhorn存储</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="enable_harbor" name="enable_harbor" value="yes" onchange="toggleHarbor()">
+                    <label class="form-check-label" for="enable_harbor">安装harbor仓库</label>
+                </div>
+                <div id="harborConfig" class="hidden sub-section">
+                    <div class="form-group">
+                        <label for="harbor_domain_name">仓库访问域名:</label>
+                        <input type="text" class="form-control" id="harbor_domain_name" name="harbor_domain_name">
+                    </div>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="enable_gpu_operator" name="enable_gpu_operator" value="yes">
+                    <label class="form-check-label" for="enable_gpu_operator">安装GPU插件</label>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="enable_nfs_provisioner" name="enable_nfs_provisioner" value="yes" onchange="toggleNFS()">
+                    <label class="form-check-label" for="enable_nfs_provisioner">安装NFS插件</label>
+                </div>
+                <div id="nfsConfig" class="hidden sub-section">
+                    <div class="form-group">
+                        <label for="nfs_server_ip">NFS server(如IP地址):</label>
+                        <input type="text" class="form-control" id="nfs_server_ip" name="nfs_server_ip">
+                    </div>
+                    <div class="form-group">
+                        <label for="nfs_server_path">NFS共享路径:</label>
+                        <input type="text" class="form-control" id="nfs_server_path" name="nfs_server_path">
+                    </div>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="enable_multiple_networks" name="enable_multiple_networks" value="yes" onchange="toggleMultipleNetworks()">
+                    <label class="form-check-label" for="enable_multiple_networks">多网络平面</label>
+                </div>
+                <div id="multipleNetworksConfig" class="hidden sub-section">
+                    <div class="form-group">
+                        <label for="data_iface">第二个网卡名(如eth2):</label>
+                        <input type="text" class="form-control" id="data_iface" name="data_iface">
+                    </div>
+                    <div class="form-group">
+                        <label for="data_network_name">第二个网络名称(如data-network):</label>
+                        <input type="text" class="form-control" id="data_network_name" name="data_network_name">
+                    </div>
                 </div>
             </div>
-            <div>
-                <label>
-                    <input type="checkbox" id="enable_longhorn" name="enable_longhorn" value="yes"> 安装longhorn存储
-                </label>
-            </div>
-            <div>
-                <label>
-                    <input type="checkbox" id="enable_harbor" name="enable_harbor" value="yes" onchange="toggleHarbor()"> 安装harbor仓库
-                </label>
-            </div>
-            <div id="harborConfig" class="hidden sub-section">
-                <div>
-                    <label for="harbor_domain_name">仓库访问域名:</label>
-                    <input type="text" id="harbor_domain_name" name="harbor_domain_name">
-                </div>
-            </div>
-            <div>
-                <label>
-                    <input type="checkbox" id="enable_gpu_operator" name="enable_gpu_operator" value="yes"> 安装GPU插件
-                </label>
-            </div>
-            <div>
-                <label>
-                    <input type="checkbox" id="enable_nfs_provisioner" name="enable_nfs_provisioner" value="yes"> 安装NFS插件
-                </label>
-            </div>
-            <div id="nfsConfig" class="hidden sub-section">
-                <div>
-                    <label for="nfs_server_ip">NFS server(如IP地址):</label>
-                    <input type="text" id="nfs_server_ip" name="nfs_server_ip">
-                </div>
-                <div>
-                    <label for="nfs_server_path">NFS共享路径:</label>
-                    <input type="text" id="nfs_server_path" name="nfs_server_path">
-                </div>
-            </div>
-            <div>
-                <label>
-                    <input type="checkbox" id="enable_multiple_networks" name="enable_multiple_networks" value="yes" onchange="toggleMultipleNetworks()"> 多网络平面
-                </label>
-            </div>
-            <div id="multipleNetworksConfig" class="hidden sub-section">
-                <div>
-                    <label for="data_iface">第二个网卡名(如eth2):</label>
-                    <input type="text" id="data_iface" name="data_iface">
-                </div>
-                <div>
-                    <label for="data_network_name">第二个网络名称(如data-network):</label>
-                    <input type="text" id="data_network_name" name="data_network_name">
-                </div>
-            </div>
-        </div>
-        <button type="submit">开始部署</button>
-    </form>
+            <button type="submit" class="btn btn-success">开始部署</button>
+        </form>
+    </div>
+
+    <!-- 引入Bootstrap JS和依赖 -->
+    <script src="resources/jquery-3.5.1.slim.min.js"></script>
+    <script src="resources/popper.min.js"></script>
+    <script src="resources/bootstrap.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const response = await fetch('/api/config');
-                const config = await response.json();
+                const resp1 = await fetch('/api/hosts');
+                const hosts = await resp1.json();
+                hosts.masters.forEach((node) => {
+                    addNodeToForm(node.name, node.ip, 'server');
+                });
+                hosts.workers.forEach((node) => {
+                    addNodeToForm(node.name, node.ip, 'agent');
+                });
 
+                const resp2 = await fetch('/api/config');
+                const config = await resp2.json();
                 document.getElementById('enable_ha_mode').checked = config.enable_ha_mode === 'yes';
                 document.getElementById('enable_rancher').checked = config.enable_rancher === 'yes';
                 if (config.enable_rancher === 'yes') {
@@ -132,6 +145,82 @@
                 console.error('Failed to load configuration:', error);
             }
         });
+
+        function addNodeToForm(name = '', ip = '', type = 'server') {
+            const nodesDiv = document.getElementById('nodes');
+            const nodeId = `node-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+            const nodeDiv = document.createElement('div');
+            nodeDiv.id = nodeId;
+            nodeDiv.classList.add('form-row', 'align-items-center', 'mb-2');
+
+            const nameDiv = document.createElement('div');
+            nameDiv.classList.add('col-auto');
+            const nameLabel = document.createElement('label');
+            nameLabel.classList.add('mr-2');
+            nameLabel.innerText = '节点名:';
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.name = 'node_name';
+            nameInput.classList.add('form-control', 'mb-2');
+            nameInput.value = name;
+            nameDiv.appendChild(nameLabel);
+            nameDiv.appendChild(nameInput);
+
+            const ipDiv = document.createElement('div');
+            ipDiv.classList.add('col-auto');
+            const ipLabel = document.createElement('label');
+            ipLabel.classList.add('mr-2');
+            ipLabel.innerText = 'IP地址:';
+            const ipInput = document.createElement('input');
+            ipInput.type = 'text';
+            ipInput.name = 'node_ip';
+            ipInput.classList.add('form-control', 'mb-2');
+            ipInput.value = ip;
+            ipDiv.appendChild(ipLabel);
+            ipDiv.appendChild(ipInput);
+
+            const typeDiv = document.createElement('div');
+            typeDiv.classList.add('col-auto');
+            const typeLabel = document.createElement('label');
+            typeLabel.classList.add('mr-2');
+            typeLabel.innerText = '类型:';
+            const typeSelect = document.createElement('select');
+            typeSelect.name = 'node_type';
+            typeSelect.classList.add('form-control', 'mb-2');
+            const serverOption = document.createElement('option');
+            serverOption.value = 'server';
+            serverOption.innerText = 'server';
+            if (type === 'server') serverOption.selected = true;
+            const agentOption = document.createElement('option');
+            agentOption.value = 'agent';
+            agentOption.innerText = 'agent';
+            if (type === 'agent') agentOption.selected = true;
+            typeSelect.appendChild(serverOption);
+            typeSelect.appendChild(agentOption);
+            typeDiv.appendChild(typeLabel);
+            typeDiv.appendChild(typeSelect);
+
+            const removeDiv = document.createElement('div');
+            removeDiv.classList.add('col-auto');
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.classList.add('btn', 'btn-danger', 'mb-2');
+            removeButton.innerText = '删除';
+            removeButton.onclick = () => document.getElementById(nodeId).remove();
+            removeDiv.appendChild(removeButton);
+
+            nodeDiv.appendChild(nameDiv);
+            nodeDiv.appendChild(ipDiv);
+            nodeDiv.appendChild(typeDiv);
+            nodeDiv.appendChild(removeDiv);
+
+            nodesDiv.appendChild(nodeDiv);
+        }
+
+        function addNode() {
+            addNodeToForm();
+        }
 
         function toggleRancher() {
             const enableRancher = document.getElementById('enable_rancher').checked;
@@ -176,7 +265,14 @@
         document.getElementById('deployForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
+            const nodes = Array.from(document.getElementById('nodes').children).map(node => ({
+                name: node.querySelector('input[name="node_name"]').value,
+                ip: node.querySelector('input[name="node_ip"]').value,
+                type: node.querySelector('select[name="node_type"]').value,
+            }));
+
             const config = {
+                hosts: nodes,
                 enable_ha_mode: document.getElementById('enable_ha_mode').checked ? 'yes' : 'no',
                 enable_rancher: document.getElementById('enable_rancher').checked ? 'yes' : 'no',
                 rke2_server_hostname: document.getElementById('enable_rancher').checked ? document.getElementById('rke2_server_hostname').value : '',
@@ -193,6 +289,7 @@
             };
 
             try {
+                // 开始部署
                 const response = await fetch('/api/deploy', {
                     method: 'POST',
                     headers: {
