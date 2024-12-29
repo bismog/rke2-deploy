@@ -108,10 +108,10 @@
                 const resp1 = await fetch('/api/hosts');
                 const hosts = await resp1.json();
                 hosts.masters.forEach((node) => {
-                    addNodeToForm(node.name, node.ip, 'server');
+                    addNodeToForm(node.name, node.ip, 'server', node.pass);
                 });
                 hosts.workers.forEach((node) => {
-                    addNodeToForm(node.name, node.ip, 'agent');
+                    addNodeToForm(node.name, node.ip, 'agent', node.pass);
                 });
 
                 const resp2 = await fetch('/api/config');
@@ -146,7 +146,7 @@
             }
         });
 
-        function addNodeToForm(name = '', ip = '', type = 'server') {
+        function addNodeToForm(name = '', ip = '', type = 'server', passphrase = '') {
             const nodesDiv = document.getElementById('nodes');
             const nodeId = `node-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -201,6 +201,19 @@
             typeDiv.appendChild(typeLabel);
             typeDiv.appendChild(typeSelect);
 
+            const passDiv = document.createElement('div');
+            passDiv.classList.add('col-auto');
+            const passLabel = document.createElement('label');
+            passLabel.classList.add('mr-2');
+            passLabel.innerText = 'ssh密码:';
+            const passInput = document.createElement('input');
+            passInput.type = 'text';
+            passInput.name = 'node_pass';
+            passInput.classList.add('form-control', 'mb-2');
+            passInput.value = passphrase;
+            passDiv.appendChild(passLabel);
+            passDiv.appendChild(passInput);
+
             const removeDiv = document.createElement('div');
             removeDiv.classList.add('col-auto');
             const removeButton = document.createElement('button');
@@ -213,6 +226,7 @@
             nodeDiv.appendChild(nameDiv);
             nodeDiv.appendChild(ipDiv);
             nodeDiv.appendChild(typeDiv);
+            nodeDiv.appendChild(passDiv);
             nodeDiv.appendChild(removeDiv);
 
             nodesDiv.appendChild(nodeDiv);
@@ -269,6 +283,7 @@
                 name: node.querySelector('input[name="node_name"]').value,
                 ip: node.querySelector('input[name="node_ip"]').value,
                 type: node.querySelector('select[name="node_type"]').value,
+                pass: node.querySelector('input[name="node_pass"]').value,
             }));
 
             const config = {

@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { spawn } = require('child_process');
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
@@ -31,7 +32,8 @@ const parseHostsFile = (content) => {
       const [name, ...params] = line.split(' ');
       const ip = params.find(param => param.startsWith('ansible_host')).split('=')[1];
       const type = params.find(param => param.startsWith('rke2_type')).split('=')[1];
-      config[currentSection].push({ name, ip, type });
+      const pass = params.find(param => param.startsWith('ansible_password')).split('=')[1];
+      config[currentSection].push({ name, ip, type, pass });
     }
   });
 
@@ -46,7 +48,12 @@ app.get('/api/hosts', (req, res) => {
   // console.log('Hosts path:', hostsPath);
 
   try {
-    const fileContents = fs.readFileSync(hostsPath, 'utf8');
+    const data = fs.readFileSync(hostsPath, 'utf8');
+    if (hostsPath === globalHostsPath && data.includes('ANSIBLE_VAULT')) {
+        fileContents = execSync(`ansible-vault view ${hostsPath}`, { encoding: 'utf8' });
+    } else {
+        fileContents = data;
+    }
     const config = parseHostsFile(fileContents);
     // console.log('当前hosts配置:', config);
     res.json(config);
@@ -66,19 +73,20 @@ function updateHosts(hosts) {
   // console.log('Hosts path:', hostsPath);
 
   let hostsContent = '[masters]\n';
-  masters.forEach(({ name, ip }) => {
-    hostsContent += `${name} ansible_host=${ip} rke2_type=server\n`;
+  masters.forEach(({ name, ip, pass }) => {
+    hostsContent += `${name} ansible_host=${ip} rke2_type=server ansible_password=${pass}\n`;
   });
 
   hostsContent += '\n[workers]\n';
-  workers.forEach(({ name, ip }) => {
-    hostsContent += `${name} ansible_host=${ip} rke2_type=agent\n`;
+  workers.forEach(({ name, ip, pass }) => {
+    hostsContent += `${name} ansible_host=${ip} rke2_type=agent ansible_password=${pass}\n`;
   });
 
   hostsContent += '\n[k8s_cluster:children]\nmasters\nworkers\n';
 
   try {
     fs.writeFileSync(hostsPath, hostsContent, 'utf8');
+    execSync(`ansible-vault encrypt ${hostsPath}`, { encoding: 'utf8' });
     console.log('更新hosts成功');
     return { success: true, message: '更新hosts成功' };
   } catch (e) {
